@@ -16,9 +16,9 @@ firebase.initializeApp(config);
 class Usurvey extends Component {
     state = {
         uid: uuid.v1(),
-        name: 'Django',
+        name: '',
         answers: {
-          asnwer1:'',
+          answer1:'',
           answer2:'',
           answer3:''
         },
@@ -32,10 +32,25 @@ class Usurvey extends Component {
     }
 
     answerSelectedHandler = (event) => {
-        const answer1 = event.target.value;
         const answers = {...this.state.answers};
-        answers.asnwer1 = answer1;
-        this.setState({answers:answers});
+        if (event.target.name === 'answer1') {
+            answers.answer1 = event.target.value;
+            this.setState({answers:answers});
+        } else if (event.target.name === 'answer2') {
+            answers.answer2 = event.target.value;
+            this.setState({answers:answers});
+        } else {
+            answers.answer3 = event.target.value;
+            this.setState({answers:answers});
+        }     
+    }
+
+    questionSubmitHandler = () => {
+        firebase.database().ref('uSurvey/'+this.state.uid).set({
+            name: this.state.name,
+            answers: this.state.answers
+        })
+        this.setState({isSubmitted:true});
     }
 
     render() {
@@ -50,15 +65,33 @@ class Usurvey extends Component {
             </div>;
             questions = null;
         } else if (this.state.studentName !== '' && this.state.isSubmitted === false) {
-            message = <h1>Hi {this.state.studentName}! Thanks for taking our Survey</h1>;
-            questions = <div className = 'card'>
-                <form>
-                    <label>What kind of Web developer are you?</label><br/>
-                    <input type='radio' name='answer1' value='frontEnd' onChange={this.answerSelectedHandler} />Front-End
-                    <input type='radio'name='answer1' value='backtEnd' onChange={this.answerSelectedHandler} />Back-End
-                    <input type='radio'name='answer1' value='fullStacks' onChange={this.answerSelectedHandler} />Full Stacks
+            message = <h1>Hi {this.state.name}! Please fill in the form below!</h1>;
+            questions = <div>
+                <form onSubmit={this.questionSubmitHandler}>
+                    <div className = 'card'>
+                        <label>What kind of Web developer are you?</label><br/>
+                        <input type='radio' name='answer1' value='frontEnd' onChange={this.answerSelectedHandler} />Front-End
+                        <input type='radio'name='answer1' value='backtEnd' onChange={this.answerSelectedHandler} />Back-End
+                        <input type='radio'name='answer1' value='fullStacks' onChange={this.answerSelectedHandler} />Full Stacks
+                    </div>
+                    <div className = 'card'>
+                        <label>What's your current status?</label><br/>
+                        <input type='radio' name='answer2' value='study' onChange={this.answerSelectedHandler} />Student
+                        <input type='radio'name='answer2' value='working' onChange={this.answerSelectedHandler} />Working
+                        <input type='radio'name='answer2' value='searching' onChange={this.answerSelectedHandler} />Looking for a job
+                    </div>
+                    <div className = 'card'>
+                        <label>How old are you?</label><br/>
+                        <input type='radio' name='answer3' value='-25' onChange={this.answerSelectedHandler} />Under 25
+                        <input type='radio'name='answer3' value='25-40' onChange={this.answerSelectedHandler} />25 - 40
+                        <input type='radio'name='answer3' value='40+' onChange={this.answerSelectedHandler} />Over 40 Years old
+                    </div>
+                    <input className="feedback-button" type='submit' value='Submit'/>
                 </form>
-            </div>
+            </div>       
+        } else if (this.state.isSubmitted === true && this.state.name !== '') {
+            questions = '';
+            message = <h1>Thanks for taking this survey!</h1>;
         }
         return(
             <div>
